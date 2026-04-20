@@ -23,7 +23,9 @@ export async function copyIntoTarget(
   targetDirectory: string,
   onProgress: (percent: number, message: string) => void
 ): Promise<UpdateSummary> {
-  const sourceFile = await findFile(resolve(sourceDirectory), TARGET_FILE)
+  const windowsDir = join(resolve(sourceDirectory), 'Windows')
+  const searchRoot = (await fs.pathExists(windowsDir)) ? windowsDir : resolve(sourceDirectory)
+  const sourceFile = await findFile(searchRoot, TARGET_FILE)
   if (!sourceFile) {
     throw new Error(`解压包中未找到 ${TARGET_FILE}`)
   }

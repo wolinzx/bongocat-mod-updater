@@ -37,4 +37,9 @@ export interface ElectronApi {
   chooseTargetDirectory: () => Promise<SelectedDirectoryResult>
   startUpdate: (input: StartUpdateInput) => Promise<UpdateResult>
   onProgress: (listener: (payload: ProgressPayload) => void) => () => void
+  windowMinimize: () => void
+  windowMaximize: () => void
+  windowClose: () => void
+  getSavedDirectory: () => Promise<string>
+  saveDirectory: (dir: string) => Promise<void>
 }

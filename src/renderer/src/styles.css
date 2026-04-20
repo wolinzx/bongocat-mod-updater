@@ -1,146 +1,245 @@
 :root {
-  font-family: "Microsoft YaHei", system-ui, sans-serif;
-  color: #e5e7eb;
-  background: #111827;
+  font-family: "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+  background: #0d0d0f;
+  color: #e8e8ed;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  margin: 0;
   min-height: 100vh;
-  background: linear-gradient(180deg, #111827 0%, #1f2937 100%);
+  background: radial-gradient(ellipse at 20% 20%, #1a1040 0%, #0d0d0f 50%, #0a1628 100%);
+  overflow: hidden;
 }
 
-button,
-input {
-  font: inherit;
-}
+button, input { font: inherit; }
 
 #root {
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
 }
+
+/* Titlebar */
+.titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  z-index: 100;
+  -webkit-app-region: drag;
+}
+
+.titlebar-drag { flex: 1; }
+
+.titlebar-controls {
+  display: flex;
+  -webkit-app-region: no-drag;
+}
+
+.tb-btn {
+  width: 46px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: #6b6b7a;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tb-btn:hover { background: rgba(255,255,255,0.08); color: #e8e8ed; }
+.tb-close:hover { background: #e81123; color: #fff; }
 
 .app {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 32px 24px;
+  width: 100%;
+  max-width: 520px;
+  padding-top: 36px;
 }
 
-.card {
-  background: rgba(17, 24, 39, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 32px;
 }
 
-h1 {
-  margin: 0 0 12px;
-  font-size: 28px;
+.header-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
 }
 
-p {
-  margin: 0;
-  color: #cbd5e1;
-  line-height: 1.6;
-}
-
-.section {
-  margin-top: 24px;
-}
-
-.label {
-  display: block;
-  margin-bottom: 8px;
-  color: #f9fafb;
+.header h1 {
+  font-size: 22px;
   font-weight: 600;
+  background: linear-gradient(90deg, #a78bfa, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.3px;
+}
+
+.header p {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #8888a8;
+}
+
+/* Card */
+.card {
+  background: linear-gradient(145deg, #1e1b2e 0%, #18181c 60%, #0f1a24 100%);
+  border: 1px solid rgba(88, 101, 242, 0.2);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 0 60px rgba(88, 101, 242, 0.08), 0 20px 40px rgba(0,0,0,0.4);
+}
+
+/* Directory section */
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9090b0;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 8px;
 }
 
 .path-row {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .path-input {
   flex: 1;
-  background: #0f172a;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  color: #f9fafb;
+  background: #0d0d0f;
+  border: 1px solid #2a2a30;
+  color: #c8c8d0;
   border-radius: 10px;
-  padding: 12px 14px;
+  padding: 10px 14px;
+  font-size: 13px;
+  outline: none;
+  min-width: 0;
 }
 
-.button {
-  border: 0;
+.path-input::placeholder { color: #3a3a44; }
+
+/* Buttons */
+.btn {
+  border: none;
   border-radius: 10px;
-  padding: 12px 18px;
+  padding: 10px 16px;
   cursor: pointer;
-  background: #2563eb;
+  font-size: 13px;
+  font-weight: 500;
+  transition: opacity 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.btn:disabled { cursor: not-allowed; opacity: 0.4; }
+
+.btn-primary {
+  background: #5865f2;
   color: #fff;
-  transition: opacity 0.2s ease;
-}
-
-.button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.button.secondary {
-  background: #334155;
-}
-
-.progress {
   width: 100%;
-  height: 12px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 12px;
+  margin-top: 20px;
+  letter-spacing: 0.2px;
+}
+
+.btn-primary:not(:disabled):hover { background: #4752c4; }
+
+.btn-secondary {
+  background: #2a2a30;
+  color: #a0a0b0;
+}
+
+.btn-secondary:not(:disabled):hover { background: #333340; }
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: #2a2a30;
+  margin: 24px 0;
+}
+
+/* Progress */
+.progress-wrap {
+  margin-bottom: 12px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 4px;
   border-radius: 999px;
-  background: rgba(148, 163, 184, 0.22);
+  background: #2a2a30;
   overflow: hidden;
 }
 
-.progress-bar {
+.progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #22c55e, #3b82f6);
-  transition: width 0.2s ease;
+  background: #5865f2;
+  border-radius: 999px;
+  transition: width 0.3s ease;
 }
 
-.status {
+.status-text {
   margin-top: 10px;
-  color: #e2e8f0;
+  font-size: 13px;
+  color: #6b6b7a;
+  min-height: 18px;
 }
 
+/* Logs */
 .logs {
+  background: #0d0d0f;
+  border: 1px solid #2a2a30;
+  border-radius: 10px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding: 12px 14px;
   margin-top: 16px;
-  border-radius: 12px;
-  background: #020617;
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  max-height: 220px;
-  overflow: auto;
-  padding: 12px;
 }
+
+.logs::-webkit-scrollbar { width: 4px; }
+.logs::-webkit-scrollbar-track { background: transparent; }
+.logs::-webkit-scrollbar-thumb { background: #2a2a30; border-radius: 4px; }
 
 .log-item {
-  font-size: 14px;
-  line-height: 1.5;
-  color: #cbd5e1;
-  padding: 4px 0;
-  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #7878a0;
+  word-break: break-all;
 }
 
+.log-item:last-child { color: #b0b0cc; }
+
+/* Result */
 .result {
   margin-top: 16px;
-  padding: 14px 16px;
-  border-radius: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .result.success {
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.35);
+  background: rgba(87, 242, 135, 0.07);
+  border: 1px solid rgba(87, 242, 135, 0.2);
+  color: #57f287;
 }
 
 .result.error {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(237, 66, 69, 0.07);
+  border: 1px solid rgba(237, 66, 69, 0.2);
+  color: #ed4245;
 }

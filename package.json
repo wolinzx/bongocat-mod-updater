@@ -1,6 +1,7 @@
 {
-  "name": "cat-update-updater-electron",
+  "name": "cat-mod-updater-electron",
   "version": "1.0.0",
+  "author": "linzx",
   "description": "Electron updater for a fixed Lanzou RAR package.",
   "main": "out/main/index.js",
   "type": "module",
@@ -41,6 +42,7 @@
       "package.json"
     ],
     "win": {
+      "icon": "resources/icon.ico",
       "target": [
         "portable"
       ]

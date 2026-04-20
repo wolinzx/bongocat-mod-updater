@@ -10,6 +10,18 @@ import type { ProgressPayload, StartUpdateInput, UpdateResult } from '../shared/
 
 let mainWindow: BrowserWindow | null = null
 
+function getConfigPath(): string {
+  return join(app.getPath('userData'), 'config.json')
+}
+
+async function readConfig(): Promise<Record<string, string>> {
+  try { return await fs.readJson(getConfigPath()) } catch { return {} }
+}
+
+async function writeConfig(data: Record<string, string>): Promise<void> {
+  await fs.outputJson(getConfigPath(), data)
+}
+
 function sendProgress(payload: ProgressPayload): void {
   mainWindow?.webContents.send('update-progress', payload)
 }
@@ -17,9 +29,10 @@ function sendProgress(payload: ProgressPayload): void {
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 860,
-    height: 700,
+    height: 900,
     minWidth: 760,
-    minHeight: 640,
+    minHeight: 800,
+    frame: false,
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
@@ -39,6 +52,23 @@ function createWindow(): void {
     void mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
+
+ipcMain.on('window-minimize', () => mainWindow?.minimize())
+ipcMain.on('window-maximize', () => {
+  if (mainWindow?.isMaximized()) mainWindow.unmaximize()
+  else mainWindow?.maximize()
+})
+ipcMain.on('window-close', () => mainWindow?.close())
+
+ipcMain.handle('get-saved-directory', async () => {
+  const config = await readConfig()
+  return config.targetDirectory ?? ''
+})
+
+ipcMain.handle('save-directory', async (_event, dir: string) => {
+  const config = await readConfig()
+  await writeConfig({ ...config, targetDirectory: dir })
+})
 
 ipcMain.handle('choose-target-directory', async () => {
   const result = await dialog.showOpenDialog({
