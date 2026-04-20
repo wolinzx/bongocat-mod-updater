@@ -1,11 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron'
-import { mkdtemp } from 'node:fs/promises'
+import { mkdtemp, readFile, writeFile, mkdir, rm } from 'node:fs/promises'
 import { join } from 'node:path'
-import fs from 'fs-extra'
-import { resolveDownload, shareConfig } from './services/lanzou'
-import { downloadFile } from './services/download'
-import { extractArchive } from './services/archive'
-import { copyIntoTarget } from './services/fileOps'
 import type { ProgressPayload, StartUpdateInput, UpdateResult } from '../shared/types'
 
 let mainWindow: BrowserWindow | null = null
@@ -15,11 +10,17 @@ function getConfigPath(): string {
 }
 
 async function readConfig(): Promise<Record<string, string>> {
-  try { return await fs.readJson(getConfigPath()) } catch { return {} }
+  try {
+    return JSON.parse(await readFile(getConfigPath(), 'utf8')) as Record<string, string>
+  } catch {
+    return {}
+  }
 }
 
 async function writeConfig(data: Record<string, string>): Promise<void> {
-  await fs.outputJson(getConfigPath(), data)
+  const path = getConfigPath()
+  await mkdir(join(path, '..'), { recursive: true })
+  await writeFile(path, JSON.stringify(data))
 }
 
 function sendProgress(payload: ProgressPayload): void {
@@ -33,6 +34,7 @@ function createWindow(): void {
     minWidth: 760,
     minHeight: 800,
     frame: false,
+    show: false,
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
@@ -41,6 +43,8 @@ function createWindow(): void {
       sandbox: false
     }
   })
+
+  mainWindow.once('ready-to-show', () => mainWindow?.show())
 
   mainWindow.on('closed', () => {
     mainWindow = null
@@ -71,24 +75,13 @@ ipcMain.handle('save-directory', async (_event, dir: string) => {
 })
 
 ipcMain.handle('choose-target-directory', async () => {
-  const result = await dialog.showOpenDialog({
-    properties: ['openDirectory']
-  })
-
-  if (result.canceled || result.filePaths.length === 0) {
-    return { canceled: true }
-  }
-
-  return {
-    canceled: false,
-    path: result.filePaths[0]
-  }
+  const result = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+  if (result.canceled || result.filePaths.length === 0) return { canceled: true }
+  return { canceled: false, path: result.filePaths[0] }
 })
 
 ipcMain.handle('start-update', async (_event, input: StartUpdateInput): Promise<UpdateResult> => {
-  if (!input.targetDirectory) {
-    throw new Error('请选择目标目录。')
-  }
+  if (!input.targetDirectory) throw new Error('请选择目标目录。')
 
   const temporaryRoot = await mkdtemp(join(app.getPath('temp'), 'cat-updater-'))
   const archivePath = join(temporaryRoot, 'package.rar')
@@ -96,17 +89,21 @@ ipcMain.handle('start-update', async (_event, input: StartUpdateInput): Promise<
 
   try {
     sendProgress({ stage: 'resolving', message: '正在解析蓝奏下载链接...' })
+    const { resolveDownload } = await import('./services/lanzou')
     const resolved = await resolveDownload()
 
     sendProgress({ stage: 'downloading', message: `正在下载 ${resolved.fileName}...`, percent: 0 })
+    const { downloadFile } = await import('./services/download')
     await downloadFile(resolved.downloadUrl, archivePath, (percent, message) => {
       sendProgress({ stage: 'downloading', message, percent: Number.isFinite(percent) ? percent : undefined })
     })
 
     sendProgress({ stage: 'extracting', message: '正在解压压缩包...' })
+    const { extractArchive } = await import('./services/archive')
     const extractedRoot = await extractArchive(archivePath, extractDirectory)
 
     sendProgress({ stage: 'copying', message: '正在覆盖目标目录...', percent: 0 })
+    const { copyIntoTarget } = await import('./services/fileOps')
     const summary = await copyIntoTarget(extractedRoot, input.targetDirectory, (percent, message) => {
       sendProgress({ stage: 'copying', message, percent })
     })
@@ -117,33 +114,23 @@ ipcMain.handle('start-update', async (_event, input: StartUpdateInput): Promise<
       percent: 100
     })
 
-    return {
-      ...summary,
-      targetDirectory: input.targetDirectory
-    }
+    return { ...summary, targetDirectory: input.targetDirectory }
   } catch (error) {
     const message = error instanceof Error ? error.message : '更新失败。'
     sendProgress({ stage: 'error', message })
     throw error
   } finally {
-    await fs.remove(temporaryRoot)
+    await rm(temporaryRoot, { recursive: true, force: true })
   }
 })
 
 app.whenReady().then(() => {
   createWindow()
-
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  if (process.platform !== 'darwin') app.quit()
 })
-
-void shareConfig
